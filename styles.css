@@ -114,6 +114,26 @@
   word-break: break-word;
 }
 
+.jmty-map-query-input {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--jmty-map-border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--jmty-map-text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.jmty-map-query-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
 .jmty-map-button,
 .jmty-map-button-link {
   appearance: none;

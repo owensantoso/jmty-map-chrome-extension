@@ -94,6 +94,15 @@
     statusNode.dataset.tone = tone || "muted";
   }
 
+  function escapeHtml(value) {
+    return (value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function updatePosition(panel, settings) {
     panel.dataset.position = settings.panelPosition;
   }
@@ -164,8 +173,16 @@
     const lineMeta = createElement("div", "jmty-map-meta-row");
     lineMeta.innerHTML = `<span>Line</span><strong>${parsed.lineName || "Unknown"}</strong>`;
     const rawMeta = createElement("div", "jmty-map-meta-row jmty-map-meta-row-wide");
-    rawMeta.innerHTML = `<span>Raw</span><strong>${parsed.rawLocationText || "No location text found"}</strong>`;
+    rawMeta.innerHTML = `
+      <span>Search Text</span>
+      <textarea class="jmty-map-query-input" rows="3">${escapeHtml(parsed.rawLocationText || "")}</textarea>
+      <div class="jmty-map-query-actions">
+        <button type="button" class="jmty-map-button jmty-map-button-secondary jmty-map-search-button">Search this text</button>
+      </div>
+    `;
     metaGrid.append(stationMeta, lineMeta, rawMeta);
+    const rawQueryInput = rawMeta.querySelector(".jmty-map-query-input");
+    const searchButton = rawMeta.querySelector(".jmty-map-search-button");
 
     const toolbar = createElement("div", "jmty-map-toolbar");
     const currentLocationLabel = createElement("label", "jmty-map-toggle");
@@ -207,18 +224,29 @@
     mapController.invalidateSize();
 
     let destinationResult = null;
+    let activeParsed = {
+      ...parsed,
+      customQuery: ""
+    };
 
     async function refreshDestination() {
       retryButton.hidden = true;
       setStatus(statusNode, "Geocoding pickup location…", "muted");
 
-      if (!parsed.stationName && !parsed.rawLocationText) {
+      const editedQuery = rawQueryInput ? rawQueryInput.value.trim() : "";
+      activeParsed = {
+        ...parsed,
+        rawLocationText: editedQuery || parsed.rawLocationText,
+        customQuery: editedQuery || ""
+      };
+
+      if (!activeParsed.stationName && !activeParsed.rawLocationText) {
         setStatus(statusNode, "Could not find enough location text to geocode.", "error");
         return;
       }
 
       try {
-        destinationResult = await window.JmtyMapGeocode.geocodePickup(parsed, settings);
+        destinationResult = await window.JmtyMapGeocode.geocodePickup(activeParsed, settings);
       } catch (error) {
         setStatus(statusNode, error.message || "Geocoding failed.", "error");
         retryButton.hidden = false;
@@ -228,7 +256,7 @@
       if (!destinationResult) {
         setStatus(
           statusNode,
-          `Geocoding failed. Parsed: ${parsed.stationName || parsed.rawLocationText || "unknown location"}`,
+          `Geocoding failed. Parsed: ${activeParsed.stationName || activeParsed.rawLocationText || "unknown location"}`,
           "error"
         );
         retryButton.hidden = false;
@@ -237,7 +265,7 @@
 
       mapController.setDestination(
         destinationResult,
-        parsed.stationName || parsed.rawLocationText || "Pickup location"
+        activeParsed.stationName || activeParsed.rawLocationText || "Pickup location"
       );
       externalLink.href = mapExternalUrl(destinationResult);
       externalLink.hidden = false;
@@ -312,6 +340,21 @@
     retryButton.addEventListener("click", () => {
       refreshDestination();
     });
+
+    if (searchButton) {
+      searchButton.addEventListener("click", () => {
+        refreshDestination();
+      });
+    }
+
+    if (rawQueryInput) {
+      rawQueryInput.addEventListener("keydown", (event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+          event.preventDefault();
+          refreshDestination();
+        }
+      });
+    }
 
     if (!parsed.stationName) {
       setStatus(

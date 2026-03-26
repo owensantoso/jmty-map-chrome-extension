@@ -8,24 +8,19 @@
     }
   };
 
-  function createIconPaths() {
-    const iconUrl = chrome.runtime.getURL("vendor/images/marker-icon.png");
-    const iconRetinaUrl = chrome.runtime.getURL("vendor/images/marker-icon-2x.png");
-    const shadowUrl = chrome.runtime.getURL("vendor/images/marker-shadow.png");
-
-    return { iconUrl, iconRetinaUrl, shadowUrl };
-  }
-
-  function installLeafletIconPaths() {
-    if (!window.L || !window.L.Icon || !window.L.Icon.Default) {
-      return;
-    }
-    window.L.Icon.Default.mergeOptions(createIconPaths());
+  function createDestinationIcon() {
+    return window.L.icon({
+      iconUrl: chrome.runtime.getURL("vendor/images/marker-icon.png"),
+      iconRetinaUrl: chrome.runtime.getURL("vendor/images/marker-icon-2x.png"),
+      shadowUrl: chrome.runtime.getURL("vendor/images/marker-shadow.png"),
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
   }
 
   function createMapController(container, heightClass) {
-    installLeafletIconPaths();
-
     const mapRoot = document.createElement("div");
     mapRoot.className = `jmty-map-canvas jmty-map-height-${heightClass}`;
     container.appendChild(mapRoot);
@@ -36,6 +31,7 @@
     });
 
     window.L.tileLayer(TILE_PROVIDER.urlTemplate, TILE_PROVIDER.options).addTo(map);
+    const destinationIcon = createDestinationIcon();
 
     let destinationMarker = null;
     let currentMarker = null;
@@ -90,7 +86,9 @@
         if (destinationMarker) {
           map.removeLayer(destinationMarker);
         }
-        destinationMarker = window.L.marker([location.lat, location.lon]).addTo(map);
+        destinationMarker = window.L.marker([location.lat, location.lon], {
+          icon: destinationIcon
+        }).addTo(map);
         if (label) {
           destinationMarker.bindPopup(label);
         }

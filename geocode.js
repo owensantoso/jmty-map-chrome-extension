@@ -85,8 +85,10 @@
       parsedLocation,
       settings.useContextInGeocoding
     );
+    const customQuery = (parsedLocation.customQuery || "").trim();
 
     const queries = [
+      customQuery,
       queryParts.join(" "),
       [parsedLocation.stationName, parsedLocation.areaName, "日本"].filter(Boolean).join(" "),
       [parsedLocation.stationName, "日本"].filter(Boolean).join(" "),
