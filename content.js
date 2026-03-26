@@ -6,7 +6,9 @@
     panelPosition: "inline",
     mapHeight: "medium",
     useContextInGeocoding: true,
-    listPhotoGridEnabled: true
+    listPhotoGridEnabled: true,
+    mapProvider: "osm",
+    googleMapsApiKey: ""
   };
 
   function getStorage(area, defaults) {
@@ -305,7 +307,7 @@
       document.body.appendChild(panel);
     }
 
-    const mapController = window.JmtyMapView.createMapController(mapMount, settings.mapHeight);
+    const mapController = window.JmtyMapView.createMapController(mapMount, settings.mapHeight, settings);
     mapController.invalidateSize();
 
     let destinationResult = null;

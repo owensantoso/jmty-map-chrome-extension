@@ -4,7 +4,9 @@
     showCurrentLocationByDefault: false,
     panelPosition: "inline",
     mapHeight: "medium",
-    useContextInGeocoding: true
+    useContextInGeocoding: true,
+    mapProvider: "osm",
+    googleMapsApiKey: ""
   };
 
   function getSettings() {
@@ -25,7 +27,9 @@
       showCurrentLocationByDefault: form.showCurrentLocationByDefault.checked,
       panelPosition: form.panelPosition.value,
       mapHeight: form.mapHeight.value,
-      useContextInGeocoding: form.useContextInGeocoding.checked
+      useContextInGeocoding: form.useContextInGeocoding.checked,
+      mapProvider: form.mapProvider.value,
+      googleMapsApiKey: form.googleMapsApiKey.value.trim()
     };
   }
 

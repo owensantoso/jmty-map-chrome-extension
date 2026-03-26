@@ -28,12 +28,24 @@
           <option value="large">Large</option>
         </select>
       </label>
+      <label>
+        Map provider
+        <select name="mapProvider">
+          <option value="osm">OpenStreetMap</option>
+          <option value="google">Google Maps</option>
+        </select>
+      </label>
+      <label>
+        Google Maps API key
+        <input type="password" name="googleMapsApiKey" placeholder="AIza..." autocomplete="off">
+      </label>
       <label><input type="checkbox" name="useContextInGeocoding"> Use line and area context when geocoding</label>
       <div class="jmty-options-actions">
         <button id="save-options" type="submit" class="jmty-map-button">Save settings</button>
       </div>
     </form>
     <div id="options-status" class="jmty-extension-note"></div>
+    <p class="jmty-extension-note">Google mode needs billing enabled plus Geocoding API and Maps Embed API on the same key.</p>
   </main>
   <script src="options.js"></script>
 </body>

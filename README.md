@@ -93,6 +93,7 @@ Geocoding cache is stored separately in `chrome.storage.local`.
 
 ## Assumptions and fragility
 
+- TODO: The photo-grid list view still needs a follow-up pass to better normalize thumbnail sizing on some JMty result pages.
 - The parser is DOM-first and mainly depends on finding a table row whose label cell is exactly `受け渡し場所`.
 - It intentionally avoids JMty hashed class names.
 - If JMty changes the detail layout away from a label/value row, parsing may need adjustment.
