@@ -21,6 +21,18 @@
     return Array.from(new Set(list.filter(Boolean)));
   }
 
+  function firstAreaToken(value) {
+    const normalized = normalizeText(value);
+    if (!normalized) {
+      return "";
+    }
+
+    return normalized
+      .split(/\s*-\s*/)
+      .map(normalizeText)
+      .filter(Boolean)[0] || "";
+  }
+
   function collectTextSegments(locationCell) {
     const directLines = [];
     const blockCandidates = locationCell.querySelectorAll("div, p, li");
@@ -141,6 +153,16 @@
     return unique(parts);
   }
 
+  function buildRawLocationText(lines, areaName, stationName) {
+    const firstNonLineSegment = lines.find((line) => !line.includes("線"));
+    const areaToken = firstAreaToken(firstNonLineSegment || areaName);
+
+    return [areaToken, stationName]
+      .map(normalizeText)
+      .filter(Boolean)
+      .join(" ");
+  }
+
   function parseLocationSection() {
     const section = findLocationCell();
     if (!section || !section.locationCell) {
@@ -151,12 +173,12 @@
     }
 
     const lines = collectTextSegments(section.locationCell);
-    const rawLocationText = unique(lines).join(" / ");
     const stationCandidates = extractMatches(lines, STATION_PATTERN);
     const lineCandidates = extractMatches(lines, LINE_PATTERN);
     const stationName = stationCandidates.at(-1) || findStationFromLinks(section.locationCell);
     const lineName = lineCandidates.at(-1) || findLineFromLines(lines);
     const areaName = findAreaName(lines, section.locationCell);
+    const rawLocationText = buildRawLocationText(lines, areaName, stationName);
     const confidence = stationName
       ? stationName.endsWith("駅")
         ? "high"
