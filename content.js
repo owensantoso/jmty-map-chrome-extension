@@ -5,7 +5,8 @@
     showCurrentLocationByDefault: false,
     panelPosition: "inline",
     mapHeight: "medium",
-    useContextInGeocoding: true
+    useContextInGeocoding: true,
+    listPhotoGridEnabled: true
   };
 
   function getStorage(area, defaults) {
@@ -22,6 +23,10 @@
 
   function isListingPage() {
     return /^\/[^/]+\/sale(?:-[^/]+)?\/article-/.test(location.pathname);
+  }
+
+  function isSearchResultsPage() {
+    return /^\/[^/]+\/sale(?:\/p-\d+)?$/.test(location.pathname) && Boolean(document.querySelector(".p-articles-list"));
   }
 
   function createElement(tag, className, text) {
@@ -154,6 +159,58 @@
         }
       );
     });
+  }
+
+  function applyListPhotoGrid(enabled, listRoot, toggleButton) {
+    listRoot.classList.toggle("jmty-photo-grid-enabled", enabled);
+    toggleButton.textContent = enabled ? "Original List" : "Photo Grid";
+    toggleButton.setAttribute("aria-pressed", enabled ? "true" : "false");
+  }
+
+  async function initListPageEnhancer() {
+    if (!isSearchResultsPage()) {
+      return false;
+    }
+
+    const listRoot = document.querySelector(".p-articles-list");
+    const listItems = listRoot ? Array.from(listRoot.querySelectorAll(".p-articles-list-item")) : [];
+    if (!listRoot || !listItems.length) {
+      return false;
+    }
+
+    const settings = await getStorage("sync", DEFAULT_SETTINGS);
+    const heading = document.querySelector(".p-articles-list-title");
+    const toolbar = createElement("div", "jmty-photo-grid-toolbar");
+    const title = createElement("div", "jmty-photo-grid-label", "Photo-first view");
+    const subtitle = createElement("div", "jmty-photo-grid-note", "Larger thumbnails with a card grid for browsing");
+    const copy = createElement("div", "jmty-photo-grid-copy");
+    copy.append(title, subtitle);
+
+    const toggleButton = createElement(
+      "button",
+      "jmty-map-button jmty-map-button-secondary jmty-photo-grid-toggle",
+      "Photo Grid"
+    );
+    toggleButton.type = "button";
+
+    toolbar.append(copy, toggleButton);
+    if (heading) {
+      heading.insertAdjacentElement("afterend", toolbar);
+    } else {
+      listRoot.parentElement.insertBefore(toolbar, listRoot);
+    }
+
+    applyListPhotoGrid(Boolean(settings.listPhotoGridEnabled), listRoot, toggleButton);
+
+    toggleButton.addEventListener("click", async () => {
+      const nextEnabled = !listRoot.classList.contains("jmty-photo-grid-enabled");
+      applyListPhotoGrid(nextEnabled, listRoot, toggleButton);
+      await setStorage("sync", {
+        listPhotoGridEnabled: nextEnabled
+      });
+    });
+
+    return true;
   }
 
   async function buildPanel(parsed, settings) {
@@ -425,6 +482,11 @@
   }
 
   async function init() {
+    const handledListPage = await initListPageEnhancer();
+    if (handledListPage) {
+      return;
+    }
+
     if (!isListingPage()) {
       return;
     }

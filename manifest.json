@@ -19,7 +19,9 @@
     {
       "matches": [
         "https://jmty.jp/*/sale-*/article-*",
-        "https://jmty.jp/*/sale/article-*"
+        "https://jmty.jp/*/sale/article-*",
+        "https://jmty.jp/*/sale",
+        "https://jmty.jp/*/sale/*"
       ],
       "js": [
         "vendor/leaflet.js",
