@@ -112,6 +112,31 @@
     return `https://www.openstreetmap.org/search?query=${target}`;
   }
 
+  function formatDistanceMeters(distanceMeters) {
+    if (!Number.isFinite(distanceMeters)) {
+      return "Unknown";
+    }
+    if (distanceMeters < 1000) {
+      return `${Math.round(distanceMeters)} m`;
+    }
+    return `${(distanceMeters / 1000).toFixed(distanceMeters >= 10000 ? 0 : 1)} km`;
+  }
+
+  function haversineMeters(from, to) {
+    const earthRadiusMeters = 6371000;
+    const toRadians = (degrees) => (degrees * Math.PI) / 180;
+    const dLat = toRadians(to.lat - from.lat);
+    const dLon = toRadians(to.lon - from.lon);
+    const fromLat = toRadians(from.lat);
+    const toLat = toRadians(to.lat);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(fromLat) * Math.cos(toLat) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusMeters * c;
+  }
+
   function getCurrentPosition() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -172,6 +197,8 @@
     stationMeta.innerHTML = `<span>Station</span><strong>${parsed.stationName || "Unknown"}</strong>`;
     const lineMeta = createElement("div", "jmty-map-meta-row");
     lineMeta.innerHTML = `<span>Line</span><strong>${parsed.lineName || "Unknown"}</strong>`;
+    const distanceMeta = createElement("div", "jmty-map-meta-row");
+    distanceMeta.innerHTML = `<span>Distance</span><strong>Enable current location</strong>`;
     const rawMeta = createElement("div", "jmty-map-meta-row jmty-map-meta-row-wide");
     rawMeta.innerHTML = `
       <span>Search Text</span>
@@ -180,9 +207,10 @@
         <button type="button" class="jmty-map-button jmty-map-button-secondary jmty-map-search-button">Search this text</button>
       </div>
     `;
-    metaGrid.append(stationMeta, lineMeta, rawMeta);
+    metaGrid.append(stationMeta, lineMeta, distanceMeta, rawMeta);
     const rawQueryInput = rawMeta.querySelector(".jmty-map-query-input");
     const searchButton = rawMeta.querySelector(".jmty-map-search-button");
+    const distanceValue = distanceMeta.querySelector("strong");
 
     const toolbar = createElement("div", "jmty-map-toolbar");
     const currentLocationLabel = createElement("label", "jmty-map-toggle");
@@ -224,10 +252,28 @@
     mapController.invalidateSize();
 
     let destinationResult = null;
+    let currentLocationResult = null;
     let activeParsed = {
       ...parsed,
       customQuery: ""
     };
+
+    function updateDistanceMeta() {
+      if (!distanceValue) {
+        return;
+      }
+
+      if (!destinationResult || !currentLocationResult) {
+        distanceValue.textContent = currentLocationCheckbox.checked
+          ? "Waiting for both points"
+          : "Enable current location";
+        return;
+      }
+
+      distanceValue.textContent = formatDistanceMeters(
+        haversineMeters(currentLocationResult, destinationResult)
+      );
+    }
 
     async function refreshDestination() {
       retryButton.hidden = true;
@@ -267,6 +313,7 @@
         destinationResult,
         activeParsed.stationName || activeParsed.rawLocationText || "Pickup location"
       );
+      updateDistanceMeta();
       externalLink.href = mapExternalUrl(destinationResult);
       externalLink.hidden = false;
       setStatus(
@@ -278,7 +325,9 @@
 
     async function syncCurrentLocation() {
       if (!currentLocationCheckbox.checked) {
+        currentLocationResult = null;
         mapController.clearCurrentLocation();
+        updateDistanceMeta();
         return;
       }
 
@@ -286,13 +335,15 @@
 
       try {
         const position = await getCurrentPosition();
+        currentLocationResult = {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude
+        };
         mapController.setCurrentLocation(
-          {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-          },
+          currentLocationResult,
           "Your current location"
         );
+        updateDistanceMeta();
         if (destinationResult) {
           setStatus(statusNode, "Showing destination and current location.", "success");
         } else {
@@ -300,7 +351,9 @@
         }
       } catch (error) {
         currentLocationCheckbox.checked = false;
+        currentLocationResult = null;
         mapController.clearCurrentLocation();
+        updateDistanceMeta();
         setStatus(
           statusNode,
           error.code === 1
