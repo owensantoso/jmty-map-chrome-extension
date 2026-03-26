@@ -36,10 +36,50 @@
   }
 
   function getInlineAnchor(parsed) {
-    if (parsed.locationCell) {
-      return parsed.locationCell;
+    const row = parsed.rowElement;
+    if (!row) {
+      return null;
     }
-    return parsed.rowElement || null;
+
+    const table = row.closest("table");
+    if (!table) {
+      return row;
+    }
+
+    const sectionRoot =
+      table.closest("section") ||
+      table.closest("article") ||
+      table.parentElement;
+
+    if (sectionRoot && sectionRoot !== document.body) {
+      return sectionRoot;
+    }
+
+    return table;
+  }
+
+  function placeInlinePanel(panel, parsed) {
+    const anchor = getInlineAnchor(parsed);
+    if (!anchor) {
+      document.body.appendChild(panel);
+      return;
+    }
+
+    if (anchor.parentNode) {
+      anchor.insertAdjacentElement("afterend", panel);
+    } else {
+      document.body.appendChild(panel);
+    }
+  }
+
+  function shouldForceFloating(panel) {
+    const container = panel.parentElement;
+    if (!container) {
+      return false;
+    }
+
+    const width = container.getBoundingClientRect().width;
+    return width > 0 && width < 560;
   }
 
   function ensureSinglePanel() {
@@ -153,10 +193,10 @@
     panel.append(header, body);
 
     if (settings.panelPosition === "inline") {
-      const anchor = getInlineAnchor(parsed);
-      if (anchor) {
-        anchor.appendChild(panel);
-      } else {
+      placeInlinePanel(panel, parsed);
+      if (shouldForceFloating(panel)) {
+        panel.remove();
+        panel.dataset.position = "floating";
         document.body.appendChild(panel);
       }
     } else {
