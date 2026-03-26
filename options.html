@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JMty Pickup Map Options</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="jmty-extension-page">
+  <main class="jmty-extension-shell jmty-extension-shell-wide">
+    <h1>JMty Pickup Map Options</h1>
+    <p class="jmty-extension-note">Settings are stored with <code>chrome.storage.sync</code>.</p>
+    <form id="options-form" class="jmty-settings-form">
+      <label><input type="checkbox" name="autoOpenMap"> Auto-open map on supported JMty listing pages</label>
+      <label><input type="checkbox" name="showCurrentLocationByDefault"> Try to show my current location by default</label>
+      <label>
+        Panel position
+        <select name="panelPosition">
+          <option value="inline">Inline</option>
+          <option value="floating">Floating</option>
+        </select>
+      </label>
+      <label>
+        Map height
+        <select name="mapHeight">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </label>
+      <label><input type="checkbox" name="useContextInGeocoding"> Use line and area context when geocoding</label>
+      <div class="jmty-options-actions">
+        <button id="save-options" type="submit" class="jmty-map-button">Save settings</button>
+      </div>
+    </form>
+    <div id="options-status" class="jmty-extension-note"></div>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

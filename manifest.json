@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "JMty Pickup Map",
+  "version": "0.1.0",
+  "description": "Detect pickup locations on JMty listing pages and show them on an inline map.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://jmty.jp/*",
+    "https://nominatim.openstreetmap.org/*"
+  ],
+  "action": {
+    "default_title": "JMty Pickup Map",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://jmty.jp/*/sale-*/article-*",
+        "https://jmty.jp/*/sale/article-*"
+      ],
+      "js": [
+        "vendor/leaflet.js",
+        "parse.js",
+        "geocode.js",
+        "map.js",
+        "content.js"
+      ],
+      "css": [
+        "vendor/leaflet.css",
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "vendor/images/*"
+      ],
+      "matches": [
+        "https://jmty.jp/*"
+      ]
+    }
+  ]
+}
