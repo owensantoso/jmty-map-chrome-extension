@@ -7,9 +7,82 @@
     mapHeight: "medium",
     useContextInGeocoding: true,
     listPhotoGridEnabled: true,
-    mapProvider: "osm",
-    googleMapsApiKey: ""
+    uiLanguage: "en"
   };
+
+  const UI_STRINGS = {
+    en: {
+      pickupMap: "Pickup map",
+      refresh: "Refresh",
+      collapse: "Collapse",
+      expand: "Expand",
+      station: "Station",
+      line: "Line",
+      distance: "Distance",
+      enableLocation: "Enable current location",
+      waitingForBothPoints: "Waiting for both points",
+      searchText: "Search text",
+      searchThisText: "Search this text",
+      showMyLocation: "Show my current location",
+      openInGoogleMaps: "Open in Google Maps",
+      preparingMap: "Preparing map…",
+      geocodingPickup: "Geocoding pickup location…",
+      notEnoughLocationText: "Could not find enough location text to geocode.",
+      geocodingFailedPrefix: "Geocoding failed. Parsed:",
+      destinationMappedVia: "Destination mapped via",
+      cacheSuffix: " (cache)",
+      requestCurrentLocation: "Requesting current location…",
+      showingDestinationAndLocation: "Showing destination and current location.",
+      currentLocationShown: "Current location shown.",
+      currentLocationDenied: "Current location permission was denied.",
+      currentLocationError: "Could not read current location.",
+      stationUnknown: "Unknown",
+      noLocationText: "No location text found",
+      detectStationFailed: "Could not confidently detect station",
+      photoFirstView: "Photo-first view",
+      photoGridNote: "Larger thumbnails with a card grid for browsing",
+      photoGrid: "Photo Grid",
+      originalList: "Original List"
+    },
+    ja: {
+      pickupMap: "受け渡しマップ",
+      refresh: "再読み込み",
+      collapse: "閉じる",
+      expand: "開く",
+      station: "駅",
+      line: "路線",
+      distance: "距離",
+      enableLocation: "現在地を有効にしてください",
+      waitingForBothPoints: "両方の地点を待機中",
+      searchText: "検索テキスト",
+      searchThisText: "このテキストで検索",
+      showMyLocation: "現在地を表示",
+      openInGoogleMaps: "Googleマップで開く",
+      preparingMap: "マップを準備中…",
+      geocodingPickup: "受け渡し場所をジオコーディング中…",
+      notEnoughLocationText: "ジオコーディングに十分な位置情報が見つかりませんでした。",
+      geocodingFailedPrefix: "ジオコーディングに失敗しました。解析結果:",
+      destinationMappedVia: "マッピング元",
+      cacheSuffix: "（キャッシュ）",
+      requestCurrentLocation: "現在地を取得中…",
+      showingDestinationAndLocation: "目的地と現在地を表示中です。",
+      currentLocationShown: "現在地を表示しています。",
+      currentLocationDenied: "現在地の許可が拒否されました。",
+      currentLocationError: "現在地を取得できませんでした。",
+      stationUnknown: "不明",
+      noLocationText: "位置テキストが見つかりません",
+      detectStationFailed: "駅を確実に判定できませんでした",
+      photoFirstView: "写真優先ビュー",
+      photoGridNote: "大きめのサムネイルで一覧を見やすくします",
+      photoGrid: "写真グリッド",
+      originalList: "元の一覧",
+      useCurrentLocation: "現在地"
+    }
+  };
+
+  function getStrings(settings) {
+    return UI_STRINGS[settings.uiLanguage] || UI_STRINGS.en;
+  }
 
   function getStorage(area, defaults) {
     return new Promise((resolve) => {
@@ -114,9 +187,13 @@
     panel.dataset.position = settings.panelPosition;
   }
 
-  function mapExternalUrl(result) {
-    const target = encodeURIComponent(result.displayName || `${result.lat},${result.lon}`);
-    return `https://www.openstreetmap.org/search?query=${target}`;
+  function mapExternalUrl(query) {
+    const params = new URLSearchParams({
+      api: "1",
+      destination: query,
+      travelmode: "walking"
+    });
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
   }
 
   function formatDistanceMeters(distanceMeters) {
@@ -163,9 +240,9 @@
     });
   }
 
-  function applyListPhotoGrid(enabled, listRoot, toggleButton) {
+  function applyListPhotoGrid(enabled, listRoot, toggleButton, strings) {
     listRoot.classList.toggle("jmty-photo-grid-enabled", enabled);
-    toggleButton.textContent = enabled ? "Original List" : "Photo Grid";
+    toggleButton.textContent = enabled ? strings.originalList : strings.photoGrid;
     toggleButton.setAttribute("aria-pressed", enabled ? "true" : "false");
   }
 
@@ -181,17 +258,18 @@
     }
 
     const settings = await getStorage("sync", DEFAULT_SETTINGS);
+    const strings = getStrings(settings);
     const heading = document.querySelector(".p-articles-list-title");
     const toolbar = createElement("div", "jmty-photo-grid-toolbar");
-    const title = createElement("div", "jmty-photo-grid-label", "Photo-first view");
-    const subtitle = createElement("div", "jmty-photo-grid-note", "Larger thumbnails with a card grid for browsing");
+    const title = createElement("div", "jmty-photo-grid-label", strings.photoFirstView);
+    const subtitle = createElement("div", "jmty-photo-grid-note", strings.photoGridNote);
     const copy = createElement("div", "jmty-photo-grid-copy");
     copy.append(title, subtitle);
 
     const toggleButton = createElement(
       "button",
       "jmty-map-button jmty-map-button-secondary jmty-photo-grid-toggle",
-      "Photo Grid"
+      strings.photoGrid
     );
     toggleButton.type = "button";
 
@@ -202,11 +280,11 @@
       listRoot.parentElement.insertBefore(toolbar, listRoot);
     }
 
-    applyListPhotoGrid(Boolean(settings.listPhotoGridEnabled), listRoot, toggleButton);
+    applyListPhotoGrid(Boolean(settings.listPhotoGridEnabled), listRoot, toggleButton, strings);
 
     toggleButton.addEventListener("click", async () => {
       const nextEnabled = !listRoot.classList.contains("jmty-photo-grid-enabled");
-      applyListPhotoGrid(nextEnabled, listRoot, toggleButton);
+      applyListPhotoGrid(nextEnabled, listRoot, toggleButton, strings);
       await setStorage("sync", {
         listPhotoGridEnabled: nextEnabled
       });
@@ -217,6 +295,7 @@
 
   async function buildPanel(parsed, settings) {
     ensureSinglePanel();
+    const strings = getStrings(settings);
 
     const panel = createElement("section", "jmty-map-panel");
     panel.id = PANEL_ID;
@@ -224,22 +303,22 @@
 
     const header = createElement("div", "jmty-map-header");
     const titleBlock = createElement("div", "jmty-map-title-block");
-    titleBlock.appendChild(createElement("div", "jmty-map-kicker", "Pickup map"));
+    titleBlock.appendChild(createElement("div", "jmty-map-kicker", strings.pickupMap));
     titleBlock.appendChild(
       createElement(
         "h3",
         "jmty-map-title",
-        parsed.stationName || "Could not confidently detect station"
+        parsed.stationName || strings.detectStationFailed
       )
     );
 
     const actions = createElement("div", "jmty-map-header-actions");
-    const refreshButton = createElement("button", "jmty-map-button jmty-map-button-secondary", "Refresh");
+    const refreshButton = createElement("button", "jmty-map-button jmty-map-button-secondary", strings.refresh);
     refreshButton.type = "button";
     const collapseButton = createElement(
       "button",
       "jmty-map-button jmty-map-button-secondary",
-      settings.autoOpenMap ? "Collapse" : "Expand"
+      settings.autoOpenMap ? strings.collapse : strings.expand
     );
     collapseButton.type = "button";
 
@@ -253,17 +332,17 @@
 
     const metaGrid = createElement("div", "jmty-map-meta");
     const stationMeta = createElement("div", "jmty-map-meta-row");
-    stationMeta.innerHTML = `<span>Station</span><strong>${parsed.stationName || "Unknown"}</strong>`;
+    stationMeta.innerHTML = `<span>${strings.station}</span><strong>${parsed.stationName || strings.stationUnknown}</strong>`;
     const lineMeta = createElement("div", "jmty-map-meta-row");
-    lineMeta.innerHTML = `<span>Line</span><strong>${parsed.lineName || "Unknown"}</strong>`;
+    lineMeta.innerHTML = `<span>${strings.line}</span><strong>${parsed.lineName || strings.stationUnknown}</strong>`;
     const distanceMeta = createElement("div", "jmty-map-meta-row");
-    distanceMeta.innerHTML = `<span>Distance</span><strong>Enable current location</strong>`;
+    distanceMeta.innerHTML = `<span>${strings.distance}</span><strong>${strings.enableLocation}</strong>`;
     const rawMeta = createElement("div", "jmty-map-meta-row jmty-map-meta-row-wide");
     rawMeta.innerHTML = `
-      <span>Search Text</span>
+      <span>${strings.searchText}</span>
       <textarea class="jmty-map-query-input" rows="3">${escapeHtml(parsed.rawLocationText || "")}</textarea>
       <div class="jmty-map-query-actions">
-        <button type="button" class="jmty-map-button jmty-map-button-secondary jmty-map-search-button">Search this text</button>
+        <button type="button" class="jmty-map-button jmty-map-button-secondary jmty-map-search-button">${strings.searchThisText}</button>
       </div>
     `;
     metaGrid.append(stationMeta, lineMeta, distanceMeta, rawMeta);
@@ -276,10 +355,10 @@
     const currentLocationCheckbox = document.createElement("input");
     currentLocationCheckbox.type = "checkbox";
     currentLocationCheckbox.checked = settings.showCurrentLocationByDefault;
-    const toggleText = createElement("span", "", "Show my current location");
+    const toggleText = createElement("span", "", strings.showMyLocation);
     currentLocationLabel.append(currentLocationCheckbox, toggleText);
 
-    const externalLink = createElement("a", "jmty-map-button jmty-map-button-link", "Open in maps");
+    const externalLink = createElement("a", "jmty-map-button jmty-map-button-link", strings.openInGoogleMaps);
     externalLink.target = "_blank";
     externalLink.rel = "noreferrer";
     externalLink.href = "#";
@@ -287,9 +366,9 @@
 
     toolbar.append(currentLocationLabel, externalLink);
 
-    const statusNode = createElement("div", "jmty-map-status", "Preparing map…");
+    const statusNode = createElement("div", "jmty-map-status", strings.preparingMap);
     const mapMount = createElement("div", "jmty-map-mount");
-    const retryButton = createElement("button", "jmty-map-button jmty-map-button-secondary jmty-map-retry", "Retry geocoding");
+    const retryButton = createElement("button", "jmty-map-button jmty-map-button-secondary jmty-map-retry", strings.refresh);
     retryButton.type = "button";
     retryButton.hidden = true;
 
@@ -307,7 +386,7 @@
       document.body.appendChild(panel);
     }
 
-    const mapController = window.JmtyMapView.createMapController(mapMount, settings.mapHeight, settings);
+    const mapController = window.JmtyMapView.createMapController(mapMount, settings.mapHeight);
     mapController.invalidateSize();
 
     let destinationResult = null;
@@ -324,19 +403,22 @@
 
       if (!destinationResult || !currentLocationResult) {
         distanceValue.textContent = currentLocationCheckbox.checked
-          ? "Waiting for both points"
-          : "Enable current location";
+          ? strings.waitingForBothPoints
+          : strings.enableLocation;
+        mapController.setDistanceBadge("");
         return;
       }
 
-      distanceValue.textContent = formatDistanceMeters(
+      const formattedDistance = formatDistanceMeters(
         haversineMeters(currentLocationResult, destinationResult)
       );
+      distanceValue.textContent = formattedDistance;
+      mapController.setDistanceBadge(formattedDistance);
     }
 
     async function refreshDestination() {
       retryButton.hidden = true;
-      setStatus(statusNode, "Geocoding pickup location…", "muted");
+      setStatus(statusNode, strings.geocodingPickup, "muted");
 
       const editedQuery = rawQueryInput ? rawQueryInput.value.trim() : "";
       activeParsed = {
@@ -346,7 +428,7 @@
       };
 
       if (!activeParsed.stationName && !activeParsed.rawLocationText) {
-        setStatus(statusNode, "Could not find enough location text to geocode.", "error");
+        setStatus(statusNode, strings.notEnoughLocationText, "error");
         return;
       }
 
@@ -361,7 +443,7 @@
       if (!destinationResult) {
         setStatus(
           statusNode,
-          `Geocoding failed. Parsed: ${activeParsed.stationName || activeParsed.rawLocationText || "unknown location"}`,
+          `${strings.geocodingFailedPrefix} ${activeParsed.stationName || activeParsed.rawLocationText || strings.stationUnknown}`,
           "error"
         );
         retryButton.hidden = false;
@@ -373,11 +455,11 @@
         activeParsed.stationName || activeParsed.rawLocationText || "Pickup location"
       );
       updateDistanceMeta();
-      externalLink.href = mapExternalUrl(destinationResult);
+      externalLink.href = mapExternalUrl(destinationResult.query || activeParsed.rawLocationText);
       externalLink.hidden = false;
       setStatus(
         statusNode,
-        `Destination mapped via ${destinationResult.provider}${destinationResult.cached ? " (cache)" : ""}.`,
+        `${strings.destinationMappedVia} ${destinationResult.provider}${destinationResult.cached ? strings.cacheSuffix : ""}.`,
         "success"
       );
     }
@@ -390,7 +472,7 @@
         return;
       }
 
-      setStatus(statusNode, "Requesting current location…", "muted");
+      setStatus(statusNode, strings.requestCurrentLocation, "muted");
 
       try {
         const position = await getCurrentPosition();
@@ -404,9 +486,9 @@
         );
         updateDistanceMeta();
         if (destinationResult) {
-          setStatus(statusNode, "Showing destination and current location.", "success");
+          setStatus(statusNode, strings.showingDestinationAndLocation, "success");
         } else {
-          setStatus(statusNode, "Current location shown.", "success");
+          setStatus(statusNode, strings.currentLocationShown, "success");
         }
       } catch (error) {
         currentLocationCheckbox.checked = false;
@@ -416,8 +498,8 @@
         setStatus(
           statusNode,
           error.code === 1
-            ? "Current location permission was denied."
-            : (error.message || "Could not read current location."),
+            ? strings.currentLocationDenied
+            : (error.message || strings.currentLocationError),
           "error"
         );
       }
@@ -436,7 +518,7 @@
 
     collapseButton.addEventListener("click", () => {
       body.hidden = !body.hidden;
-      collapseButton.textContent = body.hidden ? "Expand" : "Collapse";
+      collapseButton.textContent = body.hidden ? strings.expand : strings.collapse;
       if (!body.hidden) {
         mapController.invalidateSize();
       }
@@ -469,9 +551,9 @@
     }
 
     if (!parsed.stationName) {
-      setStatus(
-        statusNode,
-        `Could not confidently detect station. Raw text: ${parsed.rawLocationText || "none"}`,
+        setStatus(
+          statusNode,
+        `${strings.detectStationFailed}. ${parsed.rawLocationText || ""}`,
         "warning"
       );
     }

@@ -20,76 +20,15 @@
     });
   }
 
-  function createGoogleEmbedController(container, heightClass, settings) {
+  function createMapController(container, heightClass) {
     const mapRoot = document.createElement("div");
     mapRoot.className = `jmty-map-canvas jmty-map-height-${heightClass}`;
     container.appendChild(mapRoot);
 
-    const iframe = document.createElement("iframe");
-    iframe.className = "jmty-google-map-frame";
-    iframe.referrerPolicy = "no-referrer-when-downgrade";
-    iframe.loading = "lazy";
-    iframe.allowFullscreen = true;
-    mapRoot.appendChild(iframe);
-
-    let destinationLocation = null;
-    let currentLocation = null;
-
-    function buildEmbedUrl() {
-      const params = new URLSearchParams({
-        key: settings.googleMapsApiKey,
-        language: "ja"
-      });
-
-      if (destinationLocation && currentLocation) {
-        params.set("origin", `${currentLocation.lat},${currentLocation.lon}`);
-        params.set("destination", `${destinationLocation.lat},${destinationLocation.lon}`);
-        params.set("mode", "walking");
-        return `https://www.google.com/maps/embed/v1/directions?${params.toString()}`;
-      }
-
-      if (destinationLocation) {
-        params.set("q", `${destinationLocation.lat},${destinationLocation.lon}`);
-        params.set("zoom", "14");
-        return `https://www.google.com/maps/embed/v1/view?${params.toString()}`;
-      }
-
-      return "";
-    }
-
-    function refresh() {
-      const nextUrl = buildEmbedUrl();
-      if (nextUrl) {
-        iframe.src = nextUrl;
-      }
-    }
-
-    return {
-      root: mapRoot,
-      invalidateSize() {},
-      setDestination(location) {
-        destinationLocation = location;
-        refresh();
-      },
-      setCurrentLocation(location) {
-        currentLocation = location;
-        refresh();
-      },
-      clearCurrentLocation() {
-        currentLocation = null;
-        refresh();
-      },
-      destroy() {
-        iframe.remove();
-        mapRoot.remove();
-      }
-    };
-  }
-
-  function createLeafletController(container, heightClass) {
-    const mapRoot = document.createElement("div");
-    mapRoot.className = `jmty-map-canvas jmty-map-height-${heightClass}`;
-    container.appendChild(mapRoot);
+    const distanceBadge = document.createElement("div");
+    distanceBadge.className = "jmty-map-distance-badge";
+    distanceBadge.hidden = true;
+    mapRoot.appendChild(distanceBadge);
 
     const map = window.L.map(mapRoot, {
       zoomControl: true,
@@ -148,6 +87,10 @@
       invalidateSize() {
         setTimeout(() => map.invalidateSize(), 0);
       },
+      setDistanceBadge(text) {
+        distanceBadge.textContent = text;
+        distanceBadge.hidden = !text;
+      },
       setDestination(location, label) {
         if (destinationMarker) {
           map.removeLayer(destinationMarker);
@@ -190,13 +133,6 @@
         map.remove();
       }
     };
-  }
-
-  function createMapController(container, heightClass, settings) {
-    if (settings.mapProvider === "google" && settings.googleMapsApiKey) {
-      return createGoogleEmbedController(container, heightClass, settings);
-    }
-    return createLeafletController(container, heightClass);
   }
 
   window.JmtyMapView = {

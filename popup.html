@@ -8,18 +8,18 @@
 </head>
 <body class="jmty-extension-page">
   <main class="jmty-extension-shell">
-    <h1>JMty Pickup Map</h1>
+    <h1 id="popup-title">JMty Pickup Map</h1>
     <form id="popup-form" class="jmty-settings-form">
-      <label><input type="checkbox" name="autoOpenMap"> Auto-open map</label>
-      <label><input type="checkbox" name="showCurrentLocationByDefault"> Show my location by default</label>
-      <label>
+      <label id="popup-auto-open-label"><input type="checkbox" name="autoOpenMap"> Auto-open map</label>
+      <label id="popup-show-location-label"><input type="checkbox" name="showCurrentLocationByDefault"> Show my location by default</label>
+      <label id="popup-panel-position-label">
         Panel position
         <select name="panelPosition">
           <option value="inline">Inline</option>
           <option value="floating">Floating</option>
         </select>
       </label>
-      <label>
+      <label id="popup-map-height-label">
         Map height
         <select name="mapHeight">
           <option value="small">Small</option>
@@ -27,22 +27,17 @@
           <option value="large">Large</option>
         </select>
       </label>
-      <label>
-        Map provider
-        <select name="mapProvider">
-          <option value="osm">OpenStreetMap</option>
-          <option value="google">Google Maps</option>
+      <label id="popup-ui-language-label">
+        UI language
+        <select name="uiLanguage">
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
         </select>
       </label>
-      <label>
-        Google Maps API key
-        <input type="password" name="googleMapsApiKey" placeholder="AIza..." autocomplete="off">
-      </label>
-      <label><input type="checkbox" name="useContextInGeocoding"> Use area and line in geocoding</label>
+      <label id="popup-context-label"><input type="checkbox" name="useContextInGeocoding"> Use area and line in geocoding</label>
     </form>
-    <p class="jmty-extension-note">Reload the JMty tab after changing defaults.</p>
-    <p class="jmty-extension-note">Google mode needs a Maps API key with Geocoding API and Maps Embed API enabled.</p>
-    <a class="jmty-map-button jmty-map-button-link" href="options.html" target="_blank" rel="noreferrer">Open full options</a>
+    <p id="popup-note" class="jmty-extension-note">Reload the JMty tab after changing defaults.</p>
+    <a id="popup-open-options" class="jmty-map-button jmty-map-button-link" href="options.html" target="_blank" rel="noreferrer">Open full options</a>
   </main>
   <script src="popup.js"></script>
 </body>

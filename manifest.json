@@ -8,9 +8,7 @@
   ],
   "host_permissions": [
     "https://jmty.jp/*",
-    "https://nominatim.openstreetmap.org/*",
-    "https://maps.googleapis.com/*",
-    "https://www.google.com/*"
+    "https://nominatim.openstreetmap.org/*"
   ],
   "action": {
     "default_title": "JMty Pickup Map",

@@ -8,19 +8,19 @@
 </head>
 <body class="jmty-extension-page">
   <main class="jmty-extension-shell jmty-extension-shell-wide">
-    <h1>JMty Pickup Map Options</h1>
-    <p class="jmty-extension-note">Settings are stored with <code>chrome.storage.sync</code>.</p>
+    <h1 id="options-title">JMty Pickup Map Options</h1>
+    <p id="options-note" class="jmty-extension-note">Settings are stored with <code>chrome.storage.sync</code>.</p>
     <form id="options-form" class="jmty-settings-form">
-      <label><input type="checkbox" name="autoOpenMap"> Auto-open map on supported JMty listing pages</label>
-      <label><input type="checkbox" name="showCurrentLocationByDefault"> Try to show my current location by default</label>
-      <label>
+      <label id="options-auto-open-label"><input type="checkbox" name="autoOpenMap"> Auto-open map on supported JMty listing pages</label>
+      <label id="options-show-location-label"><input type="checkbox" name="showCurrentLocationByDefault"> Try to show my current location by default</label>
+      <label id="options-panel-position-label">
         Panel position
         <select name="panelPosition">
           <option value="inline">Inline</option>
           <option value="floating">Floating</option>
         </select>
       </label>
-      <label>
+      <label id="options-map-height-label">
         Map height
         <select name="mapHeight">
           <option value="small">Small</option>
@@ -28,24 +28,19 @@
           <option value="large">Large</option>
         </select>
       </label>
-      <label>
-        Map provider
-        <select name="mapProvider">
-          <option value="osm">OpenStreetMap</option>
-          <option value="google">Google Maps</option>
+      <label id="options-ui-language-label">
+        UI language
+        <select name="uiLanguage">
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
         </select>
       </label>
-      <label>
-        Google Maps API key
-        <input type="password" name="googleMapsApiKey" placeholder="AIza..." autocomplete="off">
-      </label>
-      <label><input type="checkbox" name="useContextInGeocoding"> Use line and area context when geocoding</label>
+      <label id="options-context-label"><input type="checkbox" name="useContextInGeocoding"> Use line and area context when geocoding</label>
       <div class="jmty-options-actions">
         <button id="save-options" type="submit" class="jmty-map-button">Save settings</button>
       </div>
     </form>
     <div id="options-status" class="jmty-extension-note"></div>
-    <p class="jmty-extension-note">Google mode needs billing enabled plus Geocoding API and Maps Embed API on the same key.</p>
   </main>
   <script src="options.js"></script>
 </body>

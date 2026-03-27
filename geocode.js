@@ -1,5 +1,5 @@
 (function () {
-  const NOMINATIM_GEOCODER = {
+  const DEFAULT_GEOCODER = {
     name: "nominatim",
     endpoint: "https://nominatim.openstreetmap.org/search",
     buildUrl(query) {
@@ -22,35 +22,8 @@
     }
   };
 
-  const GOOGLE_GEOCODER = {
-    name: "google",
-    endpoint: "https://maps.googleapis.com/maps/api/geocode/json",
-    buildUrl(query, settings) {
-      const params = new URLSearchParams({
-        address: query,
-        key: settings.googleMapsApiKey,
-        language: "ja",
-        region: "jp"
-      });
-      return `${this.endpoint}?${params.toString()}`;
-    },
-    parseResponse(payload) {
-      if (!payload || payload.status !== "OK" || !Array.isArray(payload.results) || !payload.results.length) {
-        return null;
-      }
-
-      const result = payload.results[0];
-      return {
-        lat: Number(result.geometry.location.lat),
-        lon: Number(result.geometry.location.lng),
-        displayName: result.formatted_address,
-        raw: result
-      };
-    }
-  };
-
-  function makeCacheKey(providerName, query) {
-    return `geo:${providerName}:${query}`;
+  function makeCacheKey(query) {
+    return `geo:${query}`;
   }
 
   function storageGet(area, keys) {
@@ -65,14 +38,14 @@
     });
   }
 
-  async function getCachedResult(providerName, query) {
-    const key = makeCacheKey(providerName, query);
+  async function getCachedResult(query) {
+    const key = makeCacheKey(query);
     const stored = await storageGet("local", [key]);
     return stored[key] || null;
   }
 
-  async function setCachedResult(providerName, query, value) {
-    const key = makeCacheKey(providerName, query);
+  async function setCachedResult(query, value) {
+    const key = makeCacheKey(query);
     await storageSet("local", { [key]: value });
   }
 
@@ -90,34 +63,24 @@
     return response.json();
   }
 
-  function getGeocoderForSettings(settings) {
-    if (settings.mapProvider === "google" && settings.googleMapsApiKey) {
-      return GOOGLE_GEOCODER;
-    }
-    return NOMINATIM_GEOCODER;
-  }
-
-  async function geocodeQuery(query, provider, settings) {
-    const cached = await getCachedResult(provider.name, query);
+  async function geocodeQuery(query, provider) {
+    const cached = await getCachedResult(query);
     if (cached) {
       return { ...cached, cached: true };
     }
 
-    const payload = await requestJson(provider.buildUrl(query, settings));
-    const mapped = provider.parseResponse
-      ? provider.parseResponse(payload)
-      : (Array.isArray(payload) && payload.length ? provider.mapResult(payload[0]) : null);
-
-    if (!mapped) {
+    const results = await requestJson(provider.buildUrl(query));
+    if (!Array.isArray(results) || !results.length) {
       return null;
     }
 
-    await setCachedResult(provider.name, query, mapped);
+    const mapped = provider.mapResult(results[0]);
+    await setCachedResult(query, mapped);
     return { ...mapped, cached: false };
   }
 
   async function geocodePickup(parsedLocation, settings) {
-    const provider = getGeocoderForSettings(settings);
+    const provider = DEFAULT_GEOCODER;
     const queryParts = window.JmtyMapParse.buildLocationQueryParts(
       parsedLocation,
       settings.useContextInGeocoding
@@ -133,7 +96,7 @@
     ].filter(Boolean);
 
     for (const query of Array.from(new Set(queries))) {
-      const result = await geocodeQuery(query, provider, settings);
+      const result = await geocodeQuery(query, provider);
       if (result) {
         return {
           ...result,
@@ -147,8 +110,7 @@
   }
 
   window.JmtyMapGeocode = {
-    NOMINATIM_GEOCODER,
-    GOOGLE_GEOCODER,
+    DEFAULT_GEOCODER,
     geocodePickup
   };
 })();

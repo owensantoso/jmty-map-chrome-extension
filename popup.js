@@ -5,8 +5,32 @@
     panelPosition: "inline",
     mapHeight: "medium",
     useContextInGeocoding: true,
-    mapProvider: "osm",
-    googleMapsApiKey: ""
+    uiLanguage: "en"
+  };
+
+  const UI_STRINGS = {
+    en: {
+      title: "JMty Pickup Map",
+      autoOpen: "Auto-open map",
+      showLocation: "Show my location by default",
+      panelPosition: "Panel position",
+      mapHeight: "Map height",
+      uiLanguage: "UI language",
+      context: "Use area and line in geocoding",
+      note: "Reload the JMty tab after changing defaults.",
+      openOptions: "Open full options"
+    },
+    ja: {
+      title: "JMty 受け渡しマップ",
+      autoOpen: "自動でマップを開く",
+      showLocation: "デフォルトで現在地を表示する",
+      panelPosition: "パネル位置",
+      mapHeight: "マップの高さ",
+      uiLanguage: "UI言語",
+      context: "ジオコーディングで路線名と地域名を使う",
+      note: "設定変更後はJMtyのタブを再読み込みしてください。",
+      openOptions: "詳細オプションを開く"
+    }
   };
 
   function getSettings() {
@@ -28,14 +52,27 @@
       panelPosition: form.panelPosition.value,
       mapHeight: form.mapHeight.value,
       useContextInGeocoding: form.useContextInGeocoding.checked,
-      mapProvider: form.mapProvider.value,
-      googleMapsApiKey: form.googleMapsApiKey.value.trim()
+      uiLanguage: form.uiLanguage.value
     };
+  }
+
+  function renderLanguage(settings) {
+    const strings = UI_STRINGS[settings.uiLanguage] || UI_STRINGS.en;
+    document.getElementById("popup-title").textContent = strings.title;
+    document.getElementById("popup-auto-open-label").lastChild.textContent = ` ${strings.autoOpen}`;
+    document.getElementById("popup-show-location-label").lastChild.textContent = ` ${strings.showLocation}`;
+    document.getElementById("popup-panel-position-label").childNodes[0].textContent = strings.panelPosition;
+    document.getElementById("popup-map-height-label").childNodes[0].textContent = strings.mapHeight;
+    document.getElementById("popup-ui-language-label").childNodes[0].textContent = strings.uiLanguage;
+    document.getElementById("popup-context-label").lastChild.textContent = ` ${strings.context}`;
+    document.getElementById("popup-note").textContent = strings.note;
+    document.getElementById("popup-open-options").textContent = strings.openOptions;
   }
 
   async function init() {
     const form = document.getElementById("popup-form");
     const settings = await getSettings();
+    renderLanguage(settings);
 
     Object.entries(settings).forEach(([key, value]) => {
       const field = form.elements[key];
@@ -50,7 +87,9 @@
     });
 
     form.addEventListener("change", () => {
-      saveSettings(formToSettings(form));
+      const nextSettings = formToSettings(form);
+      saveSettings(nextSettings);
+      renderLanguage(nextSettings);
     });
   }
 

@@ -88,12 +88,14 @@ Stored in `chrome.storage.sync`:
 - `panelPosition`: default `"inline"`
 - `mapHeight`: default `"medium"`
 - `useContextInGeocoding`: default `true`
+- `uiLanguage`: default `"en"`
 
 Geocoding cache is stored separately in `chrome.storage.local`.
 
 ## Assumptions and fragility
 
 - TODO: The photo-grid list view still needs a follow-up pass to better normalize thumbnail sizing on some JMty result pages.
+- TODO: Revisit Google Maps provider support later if you want a first-party Google map/geocoder path again.
 - The parser is DOM-first and mainly depends on finding a table row whose label cell is exactly `受け渡し場所`.
 - It intentionally avoids JMty hashed class names.
 - If JMty changes the detail layout away from a label/value row, parsing may need adjustment.
