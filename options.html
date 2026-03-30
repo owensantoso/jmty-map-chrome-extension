@@ -3,40 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JMty Pickup Map Options</title>
+  <title>Jimoty Pickup Map Options</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="jmty-extension-page">
   <main class="jmty-extension-shell jmty-extension-shell-wide">
-    <h1 id="options-title">JMty Pickup Map Options</h1>
+    <h1 id="options-title">Jimoty Pickup Map Options</h1>
     <p id="options-note" class="jmty-extension-note">Settings are stored with <code>chrome.storage.sync</code>.</p>
     <form id="options-form" class="jmty-settings-form">
-      <label id="options-auto-open-label"><input type="checkbox" name="autoOpenMap"> Auto-open map on supported JMty listing pages</label>
-      <label id="options-show-location-label"><input type="checkbox" name="showCurrentLocationByDefault"> Try to show my current location by default</label>
+      <label id="options-auto-open-label" class="jmty-checkbox-label"><input type="checkbox" name="autoOpenMap"><span class="jmty-label-text">Auto-open map on supported Jimoty listing pages</span></label>
+      <label id="options-show-location-label" class="jmty-checkbox-label"><input type="checkbox" name="showCurrentLocationByDefault"><span class="jmty-label-text">Try to show my current location by default</span></label>
       <label id="options-panel-position-label">
-        Panel position
+        <span class="jmty-label-text">Panel position</span>
         <select name="panelPosition">
           <option value="inline">Inline</option>
           <option value="floating">Floating</option>
         </select>
       </label>
       <label id="options-map-height-label">
-        Map height
+        <span class="jmty-label-text">Map height</span>
         <select name="mapHeight">
           <option value="small">Small</option>
           <option value="medium">Medium</option>
           <option value="large">Large</option>
         </select>
       </label>
+      <label id="options-directions-mode-label">
+        <span class="jmty-label-text">Directions mode</span>
+        <select name="directionsMode">
+          <option value="walking">Walking</option>
+          <option value="transit">Transit</option>
+          <option value="car">Car</option>
+        </select>
+      </label>
       <label id="options-ui-language-label">
-        UI language
+        <span class="jmty-label-text">UI language</span>
         <select name="uiLanguage">
           <option value="auto">Use Chrome language</option>
           <option value="en">English</option>
           <option value="ja">日本語</option>
         </select>
       </label>
-      <label id="options-context-label"><input type="checkbox" name="useContextInGeocoding"> Use line and area context when geocoding</label>
+      <label id="options-context-label" class="jmty-checkbox-label"><input type="checkbox" name="useContextInGeocoding"><span class="jmty-label-text">Use line and area context when geocoding</span></label>
       <div class="jmty-options-actions">
         <button id="save-options" type="submit" class="jmty-map-button">Save settings</button>
       </div>

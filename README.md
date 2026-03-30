@@ -43,6 +43,7 @@ Stored in `chrome.storage.sync`:
 - `showCurrentLocationByDefault`: default `false`
 - `panelPosition`: default `"inline"`
 - `mapHeight`: default `"medium"`
+- `directionsMode`: default `"walking"`
 - `useContextInGeocoding`: default `true`
 - `listPhotoGridEnabled`: default `true`
 - `uiLanguage`: default `"auto"` (follows Chrome UI language, with manual override)

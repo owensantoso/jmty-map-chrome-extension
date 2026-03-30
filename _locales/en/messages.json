@@ -6,7 +6,7 @@
     "message": "Jimoty Map"
   },
   "extDescription": {
-    "message": "Shows likely pickup locations on JMty listings with an inline map and optional current-location distance."
+    "message": "Shows pickup location on a map on Jimoty item pages."
   },
   "actionTitle": {
     "message": "Jimoty Pickup Map"

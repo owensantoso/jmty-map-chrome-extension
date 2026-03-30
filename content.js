@@ -7,7 +7,8 @@
     mapHeight: "medium",
     useContextInGeocoding: true,
     listPhotoGridEnabled: true,
-    uiLanguage: "auto"
+    uiLanguage: "auto",
+    directionsMode: "walking"
   };
 
   const UI_STRINGS = {
@@ -19,12 +20,16 @@
       station: "Station",
       line: "Line",
       distance: "Distance",
+      directionsWalking: "Walking",
+      directionsTransit: "Transit",
+      directionsCar: "Car",
       enableLocation: "Enable current location",
       waitingForBothPoints: "Waiting for both points",
       searchText: "Search text",
       searchThisText: "Search this text",
       showMyLocation: "Show my current location",
-      openInGoogleMaps: "Open in Google Maps",
+      directionsModeLabel: "Directions",
+      openDirections: "Open directions in Google Maps",
       preparingMap: "Preparing map…",
       geocodingPickup: "Geocoding pickup location…",
       notEnoughLocationText: "Could not find enough location text to geocode.",
@@ -52,12 +57,16 @@
       station: "駅",
       line: "路線",
       distance: "距離",
+      directionsWalking: "徒歩",
+      directionsTransit: "公共交通",
+      directionsCar: "車",
       enableLocation: "現在地を有効にしてください",
       waitingForBothPoints: "両方の地点を待機中",
       searchText: "検索テキスト",
       searchThisText: "このテキストで検索",
       showMyLocation: "現在地を表示",
-      openInGoogleMaps: "Googleマップで開く",
+      directionsModeLabel: "経路",
+      openDirections: "Googleマップで経路を開く",
       preparingMap: "マップを準備中…",
       geocodingPickup: "受け渡し場所をジオコーディング中…",
       notEnoughLocationText: "ジオコーディングに十分な位置情報が見つかりませんでした。",
@@ -196,12 +205,15 @@
     panel.dataset.position = settings.panelPosition;
   }
 
-  function mapExternalUrl(query) {
+  function mapExternalUrl(query, origin, mode) {
     const params = new URLSearchParams({
       api: "1",
       destination: query,
-      travelmode: "walking"
+      travelmode: mode === "transit" ? "transit" : mode === "car" ? "driving" : "walking"
     });
+    if (origin) {
+      params.set("origin", origin);
+    }
     return `https://www.google.com/maps/dir/?${params.toString()}`;
   }
 
@@ -367,13 +379,35 @@
     const toggleText = createElement("span", "", strings.showMyLocation);
     currentLocationLabel.append(currentLocationCheckbox, toggleText);
 
-    const externalLink = createElement("a", "jmty-map-button jmty-map-button-link", strings.openInGoogleMaps);
+    const directionsGroup = createElement("div", "jmty-map-directions-group");
+    const directionsLabel = createElement("div", "jmty-map-directions-label", strings.directionsModeLabel);
+    const directionsModes = createElement("div", "jmty-map-directions-modes");
+    const directionModeButtons = {
+      walking: createElement("button", "jmty-map-chip", strings.directionsWalking),
+      transit: createElement("button", "jmty-map-chip", strings.directionsTransit),
+      car: createElement("button", "jmty-map-chip", strings.directionsCar)
+    };
+    Object.values(directionModeButtons).forEach((button) => {
+      button.type = "button";
+    });
+    directionsModes.append(
+      directionModeButtons.walking,
+      directionModeButtons.transit,
+      directionModeButtons.car
+    );
+
+    const externalLink = createElement(
+      "a",
+      "jmty-map-button jmty-map-button-link",
+      strings.openDirections
+    );
     externalLink.target = "_blank";
     externalLink.rel = "noreferrer";
     externalLink.href = "#";
     externalLink.hidden = true;
 
-    toolbar.append(currentLocationLabel, externalLink);
+    directionsGroup.append(directionsLabel, directionsModes, externalLink);
+    toolbar.append(currentLocationLabel, directionsGroup);
 
     const statusNode = createElement("div", "jmty-map-status", strings.preparingMap);
     const mapMount = createElement("div", "jmty-map-mount");
@@ -400,10 +434,42 @@
 
     let destinationResult = null;
     let currentLocationResult = null;
+    let directionsMode = settings.directionsMode;
     let activeParsed = {
       ...parsed,
       customQuery: ""
     };
+
+    function updateDirectionsModeButtons() {
+      Object.entries(directionModeButtons).forEach(([mode, button]) => {
+        const isActive = mode === directionsMode;
+        button.dataset.active = isActive ? "true" : "false";
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+    }
+
+    function refreshExternalLink() {
+      if (!destinationResult) {
+        externalLink.hidden = true;
+        return;
+      }
+
+      externalLink.href = mapExternalUrl(
+        destinationResult.query || activeParsed.rawLocationText,
+        currentLocationResult ? `${currentLocationResult.lat},${currentLocationResult.lon}` : "",
+        directionsMode
+      );
+      externalLink.hidden = false;
+    }
+
+    async function setDirectionsMode(nextMode) {
+      directionsMode = nextMode;
+      updateDirectionsModeButtons();
+      refreshExternalLink();
+      await setStorage("sync", {
+        directionsMode: nextMode
+      });
+    }
 
     function updateDistanceMeta() {
       if (!distanceValue) {
@@ -464,8 +530,7 @@
         activeParsed.stationName || activeParsed.rawLocationText || "Pickup location"
       );
       updateDistanceMeta();
-      externalLink.href = mapExternalUrl(destinationResult.query || activeParsed.rawLocationText);
-      externalLink.hidden = false;
+      refreshExternalLink();
       setStatus(
         statusNode,
         `${strings.destinationMappedVia} ${destinationResult.provider}${destinationResult.cached ? strings.cacheSuffix : ""}.`,
@@ -494,6 +559,7 @@
           "Your current location"
         );
         updateDistanceMeta();
+        refreshExternalLink();
         if (destinationResult) {
           setStatus(statusNode, strings.showingDestinationAndLocation, "success");
         } else {
@@ -540,6 +606,15 @@
       syncCurrentLocation();
     });
 
+    Object.entries(directionModeButtons).forEach(([mode, button]) => {
+      button.addEventListener("click", () => {
+        if (mode === directionsMode) {
+          return;
+        }
+        setDirectionsMode(mode);
+      });
+    });
+
     retryButton.addEventListener("click", () => {
       refreshDestination();
     });
@@ -567,6 +642,7 @@
       );
     }
 
+    updateDirectionsModeButtons();
     await refreshDestination();
 
     if (currentLocationCheckbox.checked) {
