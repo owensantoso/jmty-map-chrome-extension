@@ -2,6 +2,8 @@
 
 Chrome extension for JMty pages that detects likely pickup locations from the `受け渡し場所` section and shows them on an inline map.
 
+<img width="1474" height="1025" alt="Screenshot 2026-03-30 at 20 40 45" src="https://github.com/user-attachments/assets/eab217aa-e427-4aab-8bcf-b74a21c67b84" />
+
 ## What it does
 
 - Runs on JMty listing URLs such as `https://jmty.jp/tokyo/sale-hom/article-1o027i`
