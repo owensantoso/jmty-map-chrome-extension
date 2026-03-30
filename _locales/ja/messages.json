@@ -1,14 +1,14 @@
 {
   "extName": {
-    "message": "JMty 受け渡しマップ"
+    "message": "ジモティー受け渡しマップ"
   },
   "extShortName": {
-    "message": "JMtyマップ"
+    "message": "ジモティーマップ"
   },
   "extDescription": {
     "message": "JMtyの商品ページの受け渡し候補地点を地図表示し、必要に応じて現在地からの距離も確認できます。"
   },
   "actionTitle": {
-    "message": "JMty 受け渡しマップ"
+    "message": "ジモティー受け渡しマップ"
   }
 }

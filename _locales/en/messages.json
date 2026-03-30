@@ -1,14 +1,14 @@
 {
   "extName": {
-    "message": "JMty Pickup Map"
+    "message": "Jimoty Pickup Map"
   },
   "extShortName": {
-    "message": "JMty Map"
+    "message": "Jimoty Map"
   },
   "extDescription": {
     "message": "Shows likely pickup locations on JMty listings with an inline map and optional current-location distance."
   },
   "actionTitle": {
-    "message": "JMty Pickup Map"
+    "message": "Jimoty Pickup Map"
   }
 }

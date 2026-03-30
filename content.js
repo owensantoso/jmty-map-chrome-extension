@@ -7,7 +7,7 @@
     mapHeight: "medium",
     useContextInGeocoding: true,
     listPhotoGridEnabled: true,
-    uiLanguage: "en"
+    uiLanguage: "auto"
   };
 
   const UI_STRINGS = {
@@ -80,8 +80,17 @@
     }
   };
 
+  function detectUiLanguage() {
+    const chromeLanguage = chrome.i18n && typeof chrome.i18n.getUILanguage === "function"
+      ? chrome.i18n.getUILanguage()
+      : "";
+    const language = (chromeLanguage || navigator.language || "en").toLowerCase();
+    return language.startsWith("ja") ? "ja" : "en";
+  }
+
   function getStrings(settings) {
-    return UI_STRINGS[settings.uiLanguage] || UI_STRINGS.en;
+    const language = settings.uiLanguage === "auto" ? detectUiLanguage() : settings.uiLanguage;
+    return UI_STRINGS[language] || UI_STRINGS.en;
   }
 
   function getStorage(area, defaults) {

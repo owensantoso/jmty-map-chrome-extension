@@ -5,7 +5,7 @@
     panelPosition: "inline",
     mapHeight: "medium",
     useContextInGeocoding: true,
-    uiLanguage: "en"
+    uiLanguage: "auto"
   };
 
   const UI_STRINGS = {
@@ -17,6 +17,7 @@
       panelPosition: "Panel position",
       mapHeight: "Map height",
       uiLanguage: "UI language",
+      uiLanguageAuto: "Use Chrome language",
       context: "Use line and area context when geocoding",
       save: "Save settings",
       saved: "Saved."
@@ -29,11 +30,24 @@
       panelPosition: "パネル位置",
       mapHeight: "マップの高さ",
       uiLanguage: "UI言語",
+      uiLanguageAuto: "Chromeの言語に合わせる",
       context: "ジオコーディングで路線名と地域名を使う",
       save: "設定を保存",
       saved: "保存しました。"
     }
   };
+
+  function detectUiLanguage() {
+    const chromeLanguage = chrome.i18n && typeof chrome.i18n.getUILanguage === "function"
+      ? chrome.i18n.getUILanguage()
+      : "";
+    const language = (chromeLanguage || navigator.language || "en").toLowerCase();
+    return language.startsWith("ja") ? "ja" : "en";
+  }
+
+  function resolveUiLanguage(settings) {
+    return settings.uiLanguage === "auto" ? detectUiLanguage() : settings.uiLanguage;
+  }
 
   function getSettings() {
     return new Promise((resolve) => {
@@ -59,7 +73,7 @@
   }
 
   function renderLanguage(settings) {
-    const strings = UI_STRINGS[settings.uiLanguage] || UI_STRINGS.en;
+    const strings = UI_STRINGS[resolveUiLanguage(settings)] || UI_STRINGS.en;
     document.getElementById("options-title").textContent = strings.title;
     document.getElementById("options-note").textContent = strings.note;
     document.getElementById("options-auto-open-label").lastChild.textContent = ` ${strings.autoOpen}`;
@@ -67,6 +81,7 @@
     document.getElementById("options-panel-position-label").childNodes[0].textContent = strings.panelPosition;
     document.getElementById("options-map-height-label").childNodes[0].textContent = strings.mapHeight;
     document.getElementById("options-ui-language-label").childNodes[0].textContent = strings.uiLanguage;
+    document.querySelector('#options-form select[name="uiLanguage"] option[value="auto"]').textContent = strings.uiLanguageAuto;
     document.getElementById("options-context-label").lastChild.textContent = ` ${strings.context}`;
     document.getElementById("save-options").textContent = strings.save;
   }
