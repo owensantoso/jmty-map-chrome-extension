@@ -415,7 +415,7 @@
     retryButton.type = "button";
     retryButton.hidden = true;
 
-    body.append(metaGrid, toolbar, statusNode, mapMount, retryButton);
+    body.append(mapMount, toolbar, statusNode, metaGrid, retryButton);
     panel.append(header, body);
 
     if (settings.panelPosition === "inline") {

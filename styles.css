@@ -252,6 +252,10 @@
   padding: 16px 18px 18px;
 }
 
+.jmty-map-mount {
+  margin-bottom: 14px;
+}
+
 .jmty-map-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
